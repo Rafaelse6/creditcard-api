@@ -19,7 +19,7 @@ function validateUserByCpf(request, response, next) {
 }
 
 app.post("/account", (request, response) => {
-    const { cpf, name, proofOfResidence, proofOfIncome } = request.body;
+    const { cpf, name, proofOfResidence, proofOfIncome, limit } = request.body;
     const userCpfValidator = users.some((user) => user.cpf === cpf);
 
     if (userCpfValidator) {
@@ -29,6 +29,7 @@ app.post("/account", (request, response) => {
     users.push({
         cpf,
         name,
+        limit,
         id: v4(),
         proofOfResidence,
         proofOfIncome,
@@ -42,6 +43,11 @@ app.get("/statement", validateUserByCpf, (request, response) => {
     const { user } = request;
     return response.json(user.statement);
 });
+
+app.get("/account", validateUserByCpf, (request, response) => {
+    const { user } = request;
+    return response.json(user);
+})
 
 app.post("/loyaltyProgram", validateUserByCpf, (request, response) => {
     const { description, limit } = request.body;
@@ -58,6 +64,23 @@ app.post("/loyaltyProgram", validateUserByCpf, (request, response) => {
     user.statement.push(loyalty);
 
     return response.status(201).send();
+});
+
+app.put("/account", validateUserByCpf, (request, response) => {
+    const { limit } = request.body;
+    const { user } = request;
+
+    user.limit = limit;
+
+    return response.status(201).send();
+});
+
+app.delete("/account", validateUserByCpf, (request, response) =>{
+    const { user } = request;
+
+    users.splice(user, 1);
+
+    return response.status(200).json(users);
 });
 
 
